@@ -48,7 +48,10 @@ FF_SOURCE=
 FF_CROSS_PREFIX=
 FF_DEP_OPENSSL_INC=
 FF_DEP_OPENSSL_LIB=
-
+FF_DEP_X264_INC=
+FF_DEP_X264_LIB=
+FF_DEP_FDK_AAC_INC=
+FF_DEP_FDK_AAC_LIB=
 FF_DEP_LIBSOXR_INC=
 FF_DEP_LIBSOXR_LIB=
 
@@ -78,6 +81,8 @@ FF_GCC_64_VER=$IJK_GCC_64_VER
 if [ "$FF_ARCH" = "armv7a" ]; then
     FF_BUILD_NAME=ffmpeg-armv7a
     FF_BUILD_NAME_OPENSSL=openssl-armv7a
+    FF_BUILD_NAME_X264=x264-armv7a
+    FF_BUILD_NAME_FDK_AAC=fdk-aac-armv7a
     FF_BUILD_NAME_LIBSOXR=libsoxr-armv7a
     FF_SOURCE=$FF_BUILD_ROOT/$FF_BUILD_NAME
 
@@ -96,6 +101,8 @@ if [ "$FF_ARCH" = "armv7a" ]; then
 elif [ "$FF_ARCH" = "armv5" ]; then
     FF_BUILD_NAME=ffmpeg-armv5
     FF_BUILD_NAME_OPENSSL=openssl-armv5
+    FF_BUILD_NAME_X264=x264-armv5
+    FF_BUILD_NAME_FDK_AAC=fdk-aac-armv5
     FF_BUILD_NAME_LIBSOXR=libsoxr-armv5
     FF_SOURCE=$FF_BUILD_ROOT/$FF_BUILD_NAME
 
@@ -112,6 +119,8 @@ elif [ "$FF_ARCH" = "armv5" ]; then
 elif [ "$FF_ARCH" = "x86" ]; then
     FF_BUILD_NAME=ffmpeg-x86
     FF_BUILD_NAME_OPENSSL=openssl-x86
+    FF_BUILD_NAME_X264=x264-x86
+    FF_BUILD_NAME_FDK_AAC=fdk-aac-x86
     FF_BUILD_NAME_LIBSOXR=libsoxr-x86
     FF_SOURCE=$FF_BUILD_ROOT/$FF_BUILD_NAME
 
@@ -130,6 +139,8 @@ elif [ "$FF_ARCH" = "x86_64" ]; then
 
     FF_BUILD_NAME=ffmpeg-x86_64
     FF_BUILD_NAME_OPENSSL=openssl-x86_64
+    FF_BUILD_NAME_X264=x264-x86_64
+    FF_BUILD_NAME_FDK_AAC=fdk-aac-x86_64
     FF_BUILD_NAME_LIBSOXR=libsoxr-x86_64
     FF_SOURCE=$FF_BUILD_ROOT/$FF_BUILD_NAME
 
@@ -148,6 +159,8 @@ elif [ "$FF_ARCH" = "arm64" ]; then
 
     FF_BUILD_NAME=ffmpeg-arm64
     FF_BUILD_NAME_OPENSSL=openssl-arm64
+    FF_BUILD_NAME_X264=x264-arm64
+    FF_BUILD_NAME_FDK_AAC=fdk-aac-arm64
     FF_BUILD_NAME_LIBSOXR=libsoxr-arm64
     FF_SOURCE=$FF_BUILD_ROOT/$FF_BUILD_NAME
 
@@ -182,6 +195,10 @@ FF_SYSROOT=$FF_TOOLCHAIN_PATH/sysroot
 FF_PREFIX=$FF_BUILD_ROOT/build/$FF_BUILD_NAME/output
 FF_DEP_OPENSSL_INC=$FF_BUILD_ROOT/build/$FF_BUILD_NAME_OPENSSL/output/include
 FF_DEP_OPENSSL_LIB=$FF_BUILD_ROOT/build/$FF_BUILD_NAME_OPENSSL/output/lib
+FF_DEP_X264_INC=$FF_BUILD_ROOT/build/$FF_BUILD_NAME_X264/output/include
+FF_DEP_X264_LIB=$FF_BUILD_ROOT/build/$FF_BUILD_NAME_X264/output/lib
+FF_DEP_FDK_AAC_INC=$FF_BUILD_ROOT/build/$FF_BUILD_NAME_FDK_AAC/output/include
+FF_DEP_FDK_AAC_LIB=$FF_BUILD_ROOT/build/$FF_BUILD_NAME_FDK_AAC/output/lib
 FF_DEP_LIBSOXR_INC=$FF_BUILD_ROOT/build/$FF_BUILD_NAME_LIBSOXR/output/include
 FF_DEP_LIBSOXR_LIB=$FF_BUILD_ROOT/build/$FF_BUILD_NAME_LIBSOXR/output/lib
 
@@ -250,6 +267,28 @@ if [ -f "${FF_DEP_OPENSSL_LIB}/libssl.a" ]; then
     FF_DEP_LIBS="$FF_DEP_LIBS -L${FF_DEP_OPENSSL_LIB} -lssl -lcrypto"
 fi
 
+# with fdk_aac
+if [ -f "${FF_DEP_FDK_AAC_LIB}/libfdk-aac.a" ]; then
+    echo "libfdk-aac detected"
+    FF_CFG_FLAGS="$FF_CFG_FLAGS --enable-libfdk-aac"
+    FF_CFG_FLAGS="$FF_CFG_FLAGS --enable-encoder=libfdk-aac --enable-muxer=adts"
+    FF_CFLAGS="$FF_CFLAGS -I${FF_DEP_FDK_AAC_INC}"
+    FF_DEP_LIBS="$FF_DEP_LIBS -L${FF_DEP_FDK_AAC_LIB} -lfdk-aac"
+    export PKG_CONFIG_PATH="$FF_DEP_FDK_AAC_LIB/pkgconfig":$FF_PREFIX/lib/pkgconfig
+        echo $PKG_CONFIG_PATH
+fi
+
+# with libx264
+if [ -f "${FF_DEP_X264_LIB}/libx264.a" ]; then
+    echo "libx264 detected"
+    FF_CFG_FLAGS="$FF_CFG_FLAGS --enable-libx264"
+        FF_CFG_FLAGS="$FF_CFG_FLAGS --enable-encoder=libx264"
+    FF_CFLAGS="$FF_CFLAGS -I${FF_DEP_X264_INC}"
+    FF_DEP_LIBS="$FF_DEP_LIBS -L${FF_DEP_X264_LIB} -lx264"
+    export PKG_CONFIG_PATH="$FF_DEP_X264_LIB/pkgconfig":$FF_PREFIX/lib/pkgconfig
+        echo $PKG_CONFIG_PATH
+fi
+
 if [ -f "${FF_DEP_LIBSOXR_LIB}/libsoxr.a" ]; then
     echo "libsoxr detected"
     FF_CFG_FLAGS="$FF_CFG_FLAGS --enable-libsoxr"
@@ -259,6 +298,10 @@ if [ -f "${FF_DEP_LIBSOXR_LIB}/libsoxr.a" ]; then
 fi
 
 FF_CFG_FLAGS="$FF_CFG_FLAGS $COMMON_FF_CFG_FLAGS"
+
+echo $FF_CFG_FLAGS
+echo $FF_DEP_LIBS
+echo $FF_CFLAGS
 
 #--------------------
 # Standard options:
