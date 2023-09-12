@@ -1,0 +1,61 @@
+#! /usr/bin/env bash
+#
+# Copyright (C) 2013-2015 Bilibili
+# Copyright (C) 2013-2015 Zhang Rui <bbcallen@gmail.com>
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+# IJK_FFMPEG_UPSTREAM=git://git.videolan.org/ffmpeg.git
+IJK_FFMPEG_UPSTREAM=https://github.com/FFmpeg/FFmpeg.git
+IJK_FFMPEG_FORK=https://github.com/FFmpeg/FFmpeg.git
+IJK_FFMPEG_COMMIT=release/6.0
+IJK_FFMPEG_LOCAL_REPO=extra/ffmpeg6.0
+
+set -e
+TOOLS=tools
+
+git --version
+
+echo "== pull ffmpeg base =="
+sh $TOOLS/pull-repo-base.sh $IJK_FFMPEG_UPSTREAM $IJK_FFMPEG_LOCAL_REPO
+
+function pull_fork()
+{
+    echo "== pull ffmpeg fork $1 =="
+#   sh $TOOLS/pull-repo-ref.sh $IJK_FFMPEG_FORK android/contrib/ffmpeg-$1 ${IJK_FFMPEG_LOCAL_REPO}
+
+    REMOTE_REPO=$IJK_FFMPEG_FORK
+    LOCAL_WORKSPACE=android/contrib/ffmpeg-$1
+    REF_REPO=$IJK_FFMPEG_LOCAL_REPO
+
+    if [ ! -d $LOCAL_WORKSPACE ]; then
+        git clone --reference $REF_REPO $REMOTE_REPO $LOCAL_WORKSPACE
+        cd $LOCAL_WORKSPACE
+        git repack -a
+    else
+        cd $LOCAL_WORKSPACE
+        git fetch --all
+        cd -
+    fi
+
+    cd android/contrib/ffmpeg-$1
+    git checkout ${IJK_FFMPEG_COMMIT}
+    cd -
+}
+
+pull_fork "armv5"
+pull_fork "armv7a"
+pull_fork "arm64"
+pull_fork "x86"
+pull_fork "x86_64"

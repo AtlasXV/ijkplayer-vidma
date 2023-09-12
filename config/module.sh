@@ -1,1 +1,1 @@
-module-default_encoder.sh
+module-default.sh

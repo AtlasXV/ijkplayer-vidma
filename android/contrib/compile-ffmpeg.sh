@@ -30,6 +30,8 @@ FF_ACT_ARCHS_32="armv5 armv7a x86"
 #FF_ACT_ARCHS_64="armv5 armv7a arm64 x86 x86_64"
 FF_ACT_ARCHS_64="armv7a arm64"
 FF_ACT_ARCHS_ALL=$FF_ACT_ARCHS_64
+#tools/do-compile-ffmpeg_ndk21.sh、tools/do-compile-ffmpeg.sh
+COMPILE_VERSION_FILE=tools/do-compile-ffmpeg_ndk21.sh
 
 echo_archs() {
     echo "===================="
@@ -63,18 +65,18 @@ echo_nextstep_help() {
 case "$FF_TARGET" in
     "")
         echo_archs armv7a
-        sh tools/do-compile-ffmpeg.sh armv7a
+        sh $COMPILE_VERSION_FILE armv7a
     ;;
     armv5|armv7a|arm64|x86|x86_64)
         echo_archs $FF_TARGET $FF_TARGET_EXTRA
-        sh tools/do-compile-ffmpeg.sh $FF_TARGET $FF_TARGET_EXTRA
+        sh $COMPILE_VERSION_FILE $FF_TARGET $FF_TARGET_EXTRA
         echo_nextstep_help
     ;;
     all32)
         echo_archs $FF_ACT_ARCHS_32
         for ARCH in $FF_ACT_ARCHS_32
         do
-            sh tools/do-compile-ffmpeg.sh $ARCH $FF_TARGET_EXTRA
+            sh $COMPILE_VERSION_FILE $ARCH $FF_TARGET_EXTRA
         done
         echo_nextstep_help
     ;;
@@ -82,7 +84,7 @@ case "$FF_TARGET" in
         echo_archs $FF_ACT_ARCHS_64
         for ARCH in $FF_ACT_ARCHS_64
         do
-            sh tools/do-compile-ffmpeg.sh $ARCH $FF_TARGET_EXTRA
+            sh $COMPILE_VERSION_FILE $ARCH $FF_TARGET_EXTRA
         done
         echo_nextstep_help
     ;;
