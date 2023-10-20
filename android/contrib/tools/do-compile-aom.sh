@@ -115,7 +115,18 @@ echo "--------------------"
 set +e
 cd $FF_PREFIX
 echo $NDK/build/cmake/android.toolchain.cmake
-cmake $FF_SOURCE -DCMAKE_TOOLCHAIN_FILE=$FF_SOURCE/build/cmake/toolchains/android.cmake -DANDROID_ABI=$CROSS_ABI -DCMAKE_ANDROID_NDK=$NDK -DAOM_ANDROID_NDK_PATH=$NDK -DENABLE_DOCS=0 -DENABLE_TESTS=0
+cmake $FF_SOURCE \
+-DCMAKE_TOOLCHAIN_FILE=$FF_SOURCE/build/cmake/toolchains/android.cmake \
+-DANDROID_ABI=$CROSS_ABI \
+-DCMAKE_ANDROID_NDK=$NDK \
+-DAOM_ANDROID_NDK_PATH=$NDK \
+-DENABLE_DOCS=0 \
+-DENABLE_TESTS=0 \
+-DCONFIG_AV1_ENCODER=0 \
+-DCONFIG_WEBM_IO=0 \
+-DCONFIG_ACCOUNTING=0 \
+-DAOM_TARGET_CPU=generic \
+-DCMAKE_BUILD_TYPE=Release
 make
 
 ##--------------------
