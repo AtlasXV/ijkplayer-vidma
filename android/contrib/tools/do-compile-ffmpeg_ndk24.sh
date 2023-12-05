@@ -38,9 +38,11 @@ if [ -z "$FF_ARCH" ]; then
     exit 1
 fi
 
-
+MIN_VERSION=21
 FF_BUILD_ROOT=`pwd`
-FF_ANDROID_PLATFORM=android-9
+FF_ANDROID_PLATFORM=android-$MIN_VERSION
+HOST_TAG=darwin-x86_64
+MIN_PLATFORM=$NDK/platforms/android-$MIN_VERSION
 
 FF_BUILD_NAME=
 FF_SOURCE=
@@ -53,6 +55,9 @@ FF_DEP_FDK_AAC_INC=
 FF_DEP_FDK_AAC_LIB=
 FF_DEP_LIBSOXR_INC=
 FF_DEP_LIBSOXR_LIB=
+
+FF_DEP_AOM_LIB=
+FF_DEP_AOM_INC=
 
 FF_CFG_FLAGS=
 
@@ -85,9 +90,10 @@ if [ "$FF_ARCH" = "armv7a" ]; then
     FF_BUILD_NAME_X264=x264-armv7a
     FF_BUILD_NAME_FDK_AAC=fdk-aac-armv7a
     FF_BUILD_NAME_LIBSOXR=libsoxr-armv7a
+    FF_BUILD_NAME_AOM=aom-armv7a
     FF_SOURCE=$FF_BUILD_ROOT/$FF_BUILD_NAME
 
-    FF_CROSS_PREFIX=arm-linux-androideabi
+    FF_CROSS_PREFIX=armv7a-linux-androideabi
     FF_TOOLCHAIN_NAME=${FF_CROSS_PREFIX}-${FF_GCC_VER}
 
     FF_CFG_FLAGS="$FF_CFG_FLAGS --arch=arm --cpu=armv7a"
@@ -97,24 +103,7 @@ if [ "$FF_ARCH" = "armv7a" ]; then
 #    FF_EXTRA_CFLAGS="$FF_EXTRA_CFLAGS -march=armv7a -mcpu=cortex-a8 -mfpu=vfpv3-d16 -mfloat-abi=softfp -mthumb"
 #    FF_EXTRA_LDFLAGS="$FF_EXTRA_LDFLAGS -Wl,--fix-cortex-a8"
 
-    FF_ASSEMBLER_SUB_DIRS="arm"
-
-elif [ "$FF_ARCH" = "armv5" ]; then
-    FF_BUILD_NAME=ffmpeg-armv5
-    FF_BUILD_NAME_OPENSSL=openssl-armv5
-    FF_BUILD_NAME_X264=x264-armv5
-    FF_BUILD_NAME_FDK_AAC=fdk-aac-armv5
-    FF_BUILD_NAME_LIBSOXR=libsoxr-armv5
-    FF_SOURCE=$FF_BUILD_ROOT/$FF_BUILD_NAME
-
-    FF_CROSS_PREFIX=arm-linux-androideabi
-    FF_TOOLCHAIN_NAME=${FF_CROSS_PREFIX}-${FF_GCC_VER}
-    FF_CFG_FLAGS="$FF_CFG_FLAGS --arch=arm"
-
-    FF_EXTRA_CFLAGS="$FF_EXTRA_CFLAGS -march=armv5te -mtune=arm9tdmi -msoft-float"
-    FF_EXTRA_LDFLAGS="$FF_EXTRA_LDFLAGS"
-
-    FF_ASSEMBLER_SUB_DIRS="arm"
+    FF_ASSEMBLER_SUB_DIRS="arm neon dnn"
 
 elif [ "$FF_ARCH" = "x86" ]; then
     FF_BUILD_NAME=ffmpeg-x86
@@ -122,6 +111,7 @@ elif [ "$FF_ARCH" = "x86" ]; then
     FF_BUILD_NAME_X264=x264-x86
     FF_BUILD_NAME_FDK_AAC=fdk-aac-x86
     FF_BUILD_NAME_LIBSOXR=libsoxr-x86
+    FF_BUILD_NAME_AOM=aom-x86
     FF_SOURCE=$FF_BUILD_ROOT/$FF_BUILD_NAME
 
     FF_CROSS_PREFIX=i686-linux-android
@@ -141,6 +131,7 @@ elif [ "$FF_ARCH" = "x86_64" ]; then
     FF_BUILD_NAME_X264=x264-x86_64
     FF_BUILD_NAME_FDK_AAC=fdk-aac-x86_64
     FF_BUILD_NAME_LIBSOXR=libsoxr-x86_64
+    FF_BUILD_NAME_AOM=aom-x86_64
     FF_SOURCE=$FF_BUILD_ROOT/$FF_BUILD_NAME
 
     FF_CROSS_PREFIX=x86_64-linux-android
@@ -161,17 +152,18 @@ elif [ "$FF_ARCH" = "arm64" ]; then
     FF_BUILD_NAME_X264=x264-arm64
     FF_BUILD_NAME_FDK_AAC=fdk-aac-arm64
     FF_BUILD_NAME_LIBSOXR=libsoxr-arm64
+    FF_BUILD_NAME_AOM=aom-arm64
     FF_SOURCE=$FF_BUILD_ROOT/$FF_BUILD_NAME
 
     FF_CROSS_PREFIX=aarch64-linux-android
     FF_TOOLCHAIN_NAME=${FF_CROSS_PREFIX}-${FF_GCC_64_VER}
 
-    FF_CFG_FLAGS="$FF_CFG_FLAGS --arch=aarch64 --enable-yasm"
+    FF_CFG_FLAGS="$FF_CFG_FLAGS --arch=aarch64 --disable-yasm --enable-neon"
 
     FF_EXTRA_CFLAGS="$FF_EXTRA_CFLAGS"
-    FF_EXTRA_LDFLAGS="$FF_EXTRA_LDFLAGS"
+    FF_EXTRA_LDFLAGS="$FF_EXTRA_LDFLAGS -Wl,-Bsymbolic"
 
-    FF_ASSEMBLER_SUB_DIRS="aarch64 neon"
+    FF_ASSEMBLER_SUB_DIRS="aarch64 neon dnn"
 
 else
     echo "unknown architecture $FF_ARCH";
@@ -188,7 +180,7 @@ if [ ! -d $FF_SOURCE ]; then
 fi
 
 #FF_TOOLCHAIN_PATH=$FF_BUILD_ROOT/build/$FF_BUILD_NAME/toolchain
-FF_TOOLCHAIN_PATH=$NDK/toolchains/llvm/prebuilt/linux-x86_64
+FF_TOOLCHAIN_PATH=$NDK/toolchains/llvm/prebuilt/darwin-x86_64
 FF_MAKE_TOOLCHAIN_FLAGS="$FF_MAKE_TOOLCHAIN_FLAGS --install-dir=$FF_TOOLCHAIN_PATH"
 
 FF_SYSROOT=$FF_TOOLCHAIN_PATH/sysroot
@@ -198,6 +190,8 @@ FF_DEP_OPENSSL_INC=$FF_BUILD_ROOT/build/$FF_BUILD_NAME_OPENSSL/output/include
 FF_DEP_OPENSSL_LIB=$FF_BUILD_ROOT/build/$FF_BUILD_NAME_OPENSSL/output/lib
 FF_DEP_X264_INC=$FF_BUILD_ROOT/build/$FF_BUILD_NAME_X264/output/include
 FF_DEP_X264_LIB=$FF_BUILD_ROOT/build/$FF_BUILD_NAME_X264/output/lib
+FF_DEP_AOM_INC=$FF_BUILD_ROOT/build/$FF_BUILD_NAME_AOM/output/include
+FF_DEP_AOM_LIB=$FF_BUILD_ROOT/build/$FF_BUILD_NAME_AOM/output/lib
 FF_DEP_FDK_AAC_INC=$FF_BUILD_ROOT/build/$FF_BUILD_NAME_FDK_AAC/output/include
 FF_DEP_FDK_AAC_LIB=$FF_BUILD_ROOT/build/$FF_BUILD_NAME_FDK_AAC/output/lib
 FF_DEP_LIBSOXR_INC=$FF_BUILD_ROOT/build/$FF_BUILD_NAME_LIBSOXR/output/include
@@ -215,13 +209,6 @@ mkdir -p $FF_PREFIX
 # mkdir -p $FF_SYSROOT
 
 FF_TOOLCHAIN_TOUCH="$FF_TOOLCHAIN_PATH/touch"
-#if [ ! -f "$FF_TOOLCHAIN_TOUCH" ]; then
-#    $ANDROID_NDK/build/tools/make-standalone-toolchain.sh \
-#        $FF_MAKE_TOOLCHAIN_FLAGS \
-#        --platform=$FF_ANDROID_PLATFORM \
-#        --toolchain=$FF_TOOLCHAIN_NAME
-#    touch $FF_TOOLCHAIN_TOUCH;
-#fi
 
 #--------------------
 echo ""
@@ -229,19 +216,20 @@ echo "--------------------"
 echo "[*] check ffmpeg env"
 echo "--------------------"
 export PATH=$FF_TOOLCHAIN_PATH/bin/:$PATH
-export CLANG="$FF_TOOLCHAIN_PATH/bin/armv7a-linux-androideabi21-clang"
-export CXX="$FF_TOOLCHAIN_PATH/bin/armv7a-linux-androideabi21-clang++"
 #export CC="${FF_CROSS_PREFIX}-gcc"
 #export LD=${FF_CROSS_PREFIX}-ld
 #export AR=${FF_CROSS_PREFIX}-ar
 #export STRIP=${FF_CROSS_PREFIX}-strip
 
 # -Wno-psabi -Wa,--noexecstack \
-FF_CFLAGS="-O3 -Wall -pipe \
+FF_CFLAGS="-O3 -Wall -pipe -Bsymbolic\
     -std=c99 \
     -ffast-math \
     -fstrict-aliasing -Werror=strict-aliasing \
-    -DANDROID -DNDEBUG"
+    -DANDROID -DNDEBUG \
+    -mno-outline-atomics\
+    -fPIC \
+    -mfpu=neon"
 
 # cause av_strlcpy crash with gcc4.7, gcc4.8
 # -fmodulo-sched -fmodulo-sched-allow-regmoves
@@ -282,10 +270,20 @@ fi
 if [ -f "${FF_DEP_X264_LIB}/libx264.a" ]; then
     echo "libx264 detected"
     FF_CFG_FLAGS="$FF_CFG_FLAGS --enable-libx264"
-        FF_CFG_FLAGS="$FF_CFG_FLAGS --enable-encoder=libx264"
+    FF_CFG_FLAGS="$FF_CFG_FLAGS --enable-encoder=libx264"
     FF_CFLAGS="$FF_CFLAGS -I${FF_DEP_X264_INC}"
     FF_DEP_LIBS="$FF_DEP_LIBS -L${FF_DEP_X264_LIB} -lx264"
     export PKG_CONFIG_PATH="$FF_DEP_X264_LIB/pkgconfig":$FF_PREFIX/lib/pkgconfig
+        echo $PKG_CONFIG_PATH
+fi
+
+# with libaom
+if [ -f "${FF_DEP_AOM_LIB}/libaom.a" ]; then
+    echo "libaom detected"
+    FF_CFG_FLAGS="$FF_CFG_FLAGS --enable-libaom --pkg-config=/usr/local/bin/pkg-config"
+    FF_CFLAGS="$FF_CFLAGS -I${FF_DEP_AOM_INC}"
+    FF_DEP_LIBS="$FF_DEP_LIBS -L${FF_DEP_AOM_LIB} -laom"
+    export PKG_CONFIG_PATH="$FF_DEP_AOM_LIB/pkgconfig":$FF_PREFIX/lib/pkgconfig
         echo $PKG_CONFIG_PATH
 fi
 
@@ -308,21 +306,27 @@ echo $FF_CFLAGS
 FF_CFG_FLAGS="$FF_CFG_FLAGS --prefix=$FF_PREFIX"
 
 # Advanced options (experts only):
-FF_CFG_FLAGS="$FF_CFG_FLAGS --cross-prefix=$FF_TOOLCHAIN_PATH/bin/arm-linux-androideabi-"
+
+CROSS_PREFIX="$FF_TOOLCHAIN_PATH/bin/$FF_CROSS_PREFIX$MIN_VERSION"
+CLANG="${CROSS_PREFIX}-clang"
+CXX="${CROSS_PREFIX}-clang++"
+FF_CFG_FLAGS="$FF_CFG_FLAGS --cross-prefix=$FF_TOOLCHAIN_PATH/bin/llvm-"
 FF_CFG_FLAGS="$FF_CFG_FLAGS --enable-cross-compile"
 FF_CFG_FLAGS="$FF_CFG_FLAGS --target-os=android"
 FF_CFG_FLAGS="$FF_CFG_FLAGS --enable-pic"
+#FF_CFG_FLAGS="$FF_CFG_FLAGS --enable-shared"
 # FF_CFG_FLAGS="$FF_CFG_FLAGS --disable-symver"
 
 FF_CFG_FLAGS="$FF_CFG_FLAGS --cc=$CLANG"
 FF_CFG_FLAGS="$FF_CFG_FLAGS --cxx=$CXX"
 FF_CFG_FLAGS="$FF_CFG_FLAGS --sysroot=$FF_SYSROOT"
 
-FF_CFG_FLAGS="$FF_CFG_FLAGS --enable-mediacodec"
-FF_CFG_FLAGS="$FF_CFG_FLAGS --enable-decoder=h264_mediacodec"
-FF_CFG_FLAGS="$FF_CFG_FLAGS --enable-decoder=hevc_mediacodec"
-FF_CFG_FLAGS="$FF_CFG_FLAGS --enable-decoder=mpeg4_mediacodec"
-FF_CFG_FLAGS="$FF_CFG_FLAGS --enable-hwaccel=h264_mediacodec"
+#FF_CFG_FLAGS="$FF_CFG_FLAGS --enable-mediacodec"
+#FF_CFG_FLAGS="$FF_CFG_FLAGS --enable-jni"
+#FF_CFG_FLAGS="$FF_CFG_FLAGS --enable-decoder=h264_mediacodec"
+#FF_CFG_FLAGS="$FF_CFG_FLAGS --enable-decoder=hevc_mediacodec"
+#FF_CFG_FLAGS="$FF_CFG_FLAGS --enable-decoder=mpeg4_mediacodec"
+#FF_CFG_FLAGS="$FF_CFG_FLAGS --enable-hwaccel=h264_mediacodec"
 
 if [ "$FF_ARCH" = "x86" ]; then
     FF_CFG_FLAGS="$FF_CFG_FLAGS --disable-asm"
@@ -355,6 +359,9 @@ cd $FF_SOURCE
 if [ -f "./config.h" ]; then
     echo 'reuse configure'
 else
+    echo 'run configure...'
+    echo "$FF_CFLAGS $FF_EXTRA_CFLAGS"
+    echo "$FF_DEP_LIBS $FF_EXTRA_LDFLAGS"
     ./configure $FF_CFG_FLAGS \
         --extra-cflags="$FF_CFLAGS $FF_EXTRA_CFLAGS" \
         --extra-ldflags="$FF_DEP_LIBS $FF_EXTRA_LDFLAGS"
@@ -404,6 +411,7 @@ $CLANG -lm -lz -shared --sysroot=$FF_SYSROOT -Wl,--no-undefined -Wl,-z,noexecsta
     $FF_C_OBJ_FILES \
     $FF_ASM_OBJ_FILES \
     $FF_DEP_LIBS \
+    -fPIC\
     -o $FF_PREFIX/libvidmaffmpeg.so
 
 mysedi() {

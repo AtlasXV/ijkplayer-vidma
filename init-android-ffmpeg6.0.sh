@@ -17,9 +17,9 @@
 #
 
 # IJK_FFMPEG_UPSTREAM=git://git.videolan.org/ffmpeg.git
-IJK_FFMPEG_UPSTREAM=https://github.com/FFmpeg/FFmpeg.git
-IJK_FFMPEG_FORK=https://github.com/FFmpeg/FFmpeg.git
-IJK_FFMPEG_COMMIT=release/6.0
+IJK_FFMPEG_UPSTREAM=https://github.com/kkkkb/FFmpeg.git
+IJK_FFMPEG_FORK=https://github.com/kkkkb/FFmpeg.git
+IJK_FFMPEG_COMMIT=release/6.0_vidma
 IJK_FFMPEG_LOCAL_REPO=extra/ffmpeg6.0
 
 set -e
@@ -53,9 +53,7 @@ function pull_fork()
     git checkout ${IJK_FFMPEG_COMMIT}
     cd -
 }
-
-pull_fork "armv5"
 pull_fork "armv7a"
 pull_fork "arm64"
-pull_fork "x86"
-pull_fork "x86_64"
+#pull_fork "x86"
+#pull_fork "x86_64"

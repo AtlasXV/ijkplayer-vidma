@@ -115,7 +115,8 @@ echo "--------------------"
 set +e
 cd $FF_PREFIX
 echo $NDK/build/cmake/android.toolchain.cmake
-cmake $FF_SOURCE \
+cmake -DCMAKE_C_FLAGS=-fPIC \
+$FF_SOURCE \
 -DCMAKE_TOOLCHAIN_FILE=$FF_SOURCE/build/cmake/toolchains/android.cmake \
 -DANDROID_ABI=$CROSS_ABI \
 -DCMAKE_ANDROID_NDK=$NDK \
@@ -126,8 +127,21 @@ cmake $FF_SOURCE \
 -DCONFIG_WEBM_IO=0 \
 -DCONFIG_ACCOUNTING=0 \
 -DAOM_TARGET_CPU=generic \
--DCMAKE_BUILD_TYPE=Release
-make
+-DCMAKE_BUILD_TYPE=Release \
+-DANDROID_PLATFORM=android-21
+make install
+
+LIB_DIR=$FF_PREFIX/lib
+PKGCOFIG_DIR=$LIB_DIR/pkgconfig
+INCLUDE_DIR=$FF_PREFIX/include/aom
+
+mkdir -p $LIB_DIR
+mkdir -p $PKGCOFIG_DIR
+mkdir -p $INCLUDE_DIR
+
+cp $FF_PREFIX/*.a $LIB_DIR
+cp $FF_PREFIX/aom.pc $PKGCOFIG_DIR/aom.pc
+cp $FF_SOURCE/aom/*.h $INCLUDE_DIR
 
 ##--------------------
 echo ""

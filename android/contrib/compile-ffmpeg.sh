@@ -31,7 +31,7 @@ FF_ACT_ARCHS_32="armv5 armv7a x86"
 FF_ACT_ARCHS_64="armv7a arm64"
 FF_ACT_ARCHS_ALL=$FF_ACT_ARCHS_64
 #tools/do-compile-ffmpeg_ndk21.sh、tools/do-compile-ffmpeg.sh
-COMPILE_VERSION_FILE=tools/do-compile-ffmpeg_ndk21.sh
+COMPILE_VERSION_FILE=tools/do-compile-ffmpeg_ndk24.sh
 
 echo_archs() {
     echo "===================="
