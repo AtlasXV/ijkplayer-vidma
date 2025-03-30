@@ -424,6 +424,27 @@ $CC -lm -lz -shared --sysroot=$FF_SYSROOT -Wl,--no-undefined -Wl,-z,noexecstack 
     $FF_DEP_LIBS \
     -o $FF_PREFIX/libvidmaffmpeg.so
 
+# 添加此部分来剥离符号信息
+echo ""
+echo "--------------------"
+echo "[*] stripping symbols from shared library to reduce size"
+echo "--------------------"
+# 记录剥离前大小
+ls -lh $FF_PREFIX/libvidmaffmpeg.so
+
+# 使用之前已定义的STRIP变量剥离所有符号
+$STRIP --strip-all $FF_PREFIX/libvidmaffmpeg.so
+
+# 记录剥离后大小
+echo "Library size after stripping:"
+ls -lh $FF_PREFIX/libvidmaffmpeg.so
+
+# 同样剥离共享库目录中的符号（如果存在）
+if [ -f "$FF_PREFIX/shared/lib/libvidmaffmpeg.so" ]; then
+    $STRIP --strip-all $FF_PREFIX/shared/lib/libvidmaffmpeg.so
+    echo "Stripped shared library copy as well"
+fi
+
 mysedi() {
     f=$1
     exp=$2
