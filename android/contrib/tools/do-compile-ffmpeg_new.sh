@@ -188,7 +188,7 @@ if [ ! -d $FF_SOURCE ]; then
     exit 1
 fi
 
-FF_TOOLCHAIN_PATH=$ANDROID_NDK/toolchains/llvm/prebuilt/darwin-x86_64
+FF_TOOLCHAIN_PATH=$ANDROID_NDK_22/toolchains/llvm/prebuilt/darwin-x86_64
 
 FF_MAKE_TOOLCHAIN_FLAGS="$FF_MAKE_TOOLCHAIN_FLAGS --install-dir=$FF_TOOLCHAIN_PATH"
 
