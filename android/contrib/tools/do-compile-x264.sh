@@ -27,8 +27,7 @@ FF_CFG_FLAGS=
 FF_PLATFORM_CFG_FLAGS=
 
 FF_EXTRA_CFLAGS=
-FF_EXTRA_LDFLAGS=
-
+FF_EXTRA_LDFLAGS="-Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384"
 
 
 #--------------------
@@ -164,6 +163,7 @@ cd $FF_SOURCE && chmod +w configure
 #if [ -f "./Makefile" ]; then
 #    echo 'reuse configure'
 #else
+export LDFLAGS="$FF_EXTRA_LDFLAGS"
     echo "./configure $FF_CFG_FLAGS"
     ./configure $FF_CFG_FLAGS
 #        --extra-cflags="$FF_CFLAGS $FF_EXTRA_CFLAGS" \

@@ -26,9 +26,9 @@ UNAME_S=$(uname -s)
 UNAME_SM=$(uname -sm)
 echo "build on $UNAME_SM"
 
-echo "ANDROID_NDK=$ANDROID_NDK"
+echo "ANDROID_NDK=$ANDROID_NDK_22"
 
-if [ -z "$ANDROID_NDK" ]; then
+if [ -z "$ANDROID_NDK_22" ]; then
     echo "You must define ANDROID_NDK before starting."
     echo "They must point to your NDK directories."
     echo ""

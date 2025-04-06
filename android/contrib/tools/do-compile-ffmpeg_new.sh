@@ -296,7 +296,7 @@ fi
 if [ -f "${FF_DEP_X264_LIB}/libx264.a" ]; then
     echo "libx264 detected"
     FF_CFG_FLAGS="$FF_CFG_FLAGS --enable-libx264"
-        FF_CFG_FLAGS="$FF_CFG_FLAGS --enable-encoder=libx264"
+    FF_CFG_FLAGS="$FF_CFG_FLAGS --enable-encoder=libx264"
     FF_CFLAGS="$FF_CFLAGS -I${FF_DEP_X264_INC}"
     FF_DEP_LIBS="$FF_DEP_LIBS -L${FF_DEP_X264_LIB} -lx264"
     export PKG_CONFIG_PATH="$FF_DEP_X264_LIB/pkgconfig":$FF_PREFIX/lib/pkgconfig
